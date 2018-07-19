@@ -17,7 +17,7 @@ export default new Router({
 		},
 		{
 			path: '/',
-			name: 'Ping',
+			name: 'Books',
 			component: Books,
 		},
 	],
