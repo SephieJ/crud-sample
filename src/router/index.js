@@ -2,13 +2,15 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import HelloWorld from '@/components/HelloWorld';
 import Ping from '@/components/Ping';
-import Books from '@/components/Books';
+import Users from '@/components/Users';
+import Order from '@/components/Order';
+import UserList from '@/components/UserList'
 
 Vue.use(Router);
 
 export default new Router({
 
-	modes: 'history',
+	mode: 'history',
   	routes: [
 		{
 			path: '/ping',
@@ -16,9 +18,19 @@ export default new Router({
 			component: Ping
 		},
 		{
+	      path: '/order/:id',
+	      name: 'Order',
+	      component: Order,
+	    },
+		{
+			path: '/user',
+			name: 'Users',
+			component: Users,
+		},
+		{
 			path: '/',
-			name: 'Books',
-			component: Books,
+			name: 'UserList',
+			component: UserList,
 		},
 	],
 

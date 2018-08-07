@@ -3,7 +3,7 @@
   	<!-- Table of Content -->
     <div class="row">
       <div class="col-sm-10">
-        <h1>Books</h1>
+        <h1>Users List</h1>
         <hr><br><br>
         <b-alert :show="dismissCountDown"
         				 :message="message"
@@ -14,25 +14,24 @@
 								 @dismiss-count-down="countDownChanged">
 					{{ message }}
 				</b-alert>
-        <button type="button" class="btn btn-success btn-sm" v-b-modal.book-modal>Add Book</button>
+        <button type="button" class="btn btn-success btn-sm" v-b-modal.book-modal>Add User</button>
         <br><br>
         <table class="table table-hover">
           <thead>
             <tr>
-              <th scope="col">Title</th>
-              <th scope="col">Author</th>
-              <th scope="col">Read?</th>
+              <th scope="col">ID</th>
+              <th scope="col">Username</th>
+              <th scope="col">Status</th>
+              <th scope="col">Previous Status</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="book in books">
-              <td>{{ book.title }}</td>
-              <td>{{ book.author }}</td>
-              <td>
-                <span v-if="book.read">Yes</span>
-                <span v-else>No</span>
-              </td>
+            <tr v-for="user in users">
+              <td>{{ user.id }}</td>
+              <td>{{ user.user_name }}</td>
+              <td>{{ user.status }}</td>
+              <td>$ {{ user.prev_status }}</td>
               <td>
                 <button type="button"
                 				class="btn btn-warning btn-sm"
@@ -46,6 +45,10 @@
                 				@click="removeBook(book)">
                 	Delete
                 </button>
+                <router-link :to="`/order/${book.id}`"
+                						 class="btn btn-primary btn-sm">
+                	Purchase
+                </router-link>
               </td>
             </tr>
           </tbody>
@@ -65,23 +68,37 @@
                     label-for="form-title-input">
           <b-form-input id="form-title-input"
                         type="text"
-                        v-model="addBookForm.title"
+                        v-model="addUserForm.title"
                         required
                         placeholder="Enter title">
           </b-form-input>
         </b-form-group>
+
         <b-form-group id="form-author-group"
                       label="Author:"
                       label-for="form-author-input">
-            <b-form-input id="form-author-input"
-                          type="text"
-                          v-model="addBookForm.author"
-                          required
-                          placeholder="Enter author">
-            </b-form-input>
-          </b-form-group>
+          <b-form-input id="form-author-input"
+                        type="text"
+                        v-model="addUserForm.author"
+                        required
+                        placeholder="Enter author">
+          </b-form-input>
+        </b-form-group>
+
+        <b-form-group id="form-price-group"
+        							label="Purchase Price"
+        							label-for="form-price-input">
+
+        	<b-form-input id="form-price-input"
+        								type="number"
+        								v-model="addUserForm.price"
+        								required
+        								placeholder="Enter price">
+        	</b-form-input>
+        </b-form-group>
+
         <b-form-group id="form-read-group">
-          <b-form-checkbox-group v-model="addBookForm.read" id="form-checks">
+          <b-form-checkbox-group v-model="addUserForm.read" id="form-checks">
             <b-form-checkbox value="true">Read?</b-form-checkbox>
           </b-form-checkbox-group>
         </b-form-group>
@@ -99,8 +116,8 @@
     				 id="book-update-modal"
     				 title="Update"
     				 hide-footer>
-
     	<b-form @submit="onSubmitUpdate" @reset="onResetUpdate" class="w-100">
+
     			<b-form-group id="form-title-edit-group"
     										label="Title:"
     										label-for="form-title-edit-input">
@@ -123,14 +140,27 @@
     					</b-form-input>
     			</b-form-group>
 
+    			<b-form-group id="form-price-group"
+        							label="Purchase Price"
+        							label-for="form-price-input">
+
+	        	<b-form-input id="form-price-input"
+	        								type="number"
+	        								v-model="editForm.price"
+	        								required
+	        								placeholder="Enter price">
+	        	</b-form-input>
+	        </b-form-group>
+
     			<b-form-group id="form-read-group">
-          <b-form-checkbox-group v-model="editForm.read" id="form-checks">
-            <b-form-checkbox value="true">Read?</b-form-checkbox>
-          </b-form-checkbox-group>
-        </b-form-group>
+	          <b-form-checkbox-group v-model="editForm.read" id="form-checks">
+	            <b-form-checkbox value="true">Read?</b-form-checkbox>
+	          </b-form-checkbox-group>
+	        </b-form-group>
 
     			<b-button type="submit" variant="warning">Update</b-button>
     			<b-button type="reset" variant="danger">Cancel</b-button>
+
     	</b-form>
     </b-modal>
     <!-- End of Modal -->
@@ -160,28 +190,25 @@
 import axios from 'axios';
 import Alert from './Alert';
 
-const base_url = 'http://localhost:5000/books'
+const base_url = 'http://localhost:5000/users'
 
 export default {
   data() {
     return {
     	API_URL: base_url,
-      books: [],
-      addBookForm: {
-        title: '',
-        author: '',
-        read: [],
+      users: [],
+      addUserForm: {
+        user_name: '',
+        status: '',
       },
       message: '',
-      book_id: '',
+      user_id: '',
       showMessage: false,
       dismissSecs: 3,
       dismissCountDown: 0,
       editForm: {
-      	id: '',
-      	titile: '',
-      	author: '',
-      	read: [],
+      	user_name: '',
+        status: '',
       },
     };
   },
@@ -192,11 +219,11 @@ export default {
   	countDownChanged (dismissCountDown) {
 			this.dismissCountDown = dismissCountDown;
 		},
-    getBooks() {
+    getUsers() {
       const path = this.API_URL;
       axios.get(path)
         .then((res) => {
-          this.books = res.data.books;
+          this.users = res.data.users;
         })
         .catch((error) => {
           // eslint-disable-next-line
@@ -209,50 +236,51 @@ export default {
 		removeBook(book) {
 			this.book_id = book.id;
 		},
-    addBook(payload) {
+    addUser(payload) {
       const path = this.API_URL;
       axios.post(path, payload)
         .then(() => {
-          this.getBooks();
-          this.message = 'Book added!';
+          this.getUsers();
+          this.message = 'User added!';
           this.showMessage = true;
         })
         .catch((error) => {
           // eslint-disable-next-line
           console.log(error);
-          this.getBooks();
+          this.getUsers();
         });
     },
     updatedBook(payload, bookID) {
     	const path = this.API_URL + `/${bookID}`;
     	axios.put(path, payload)
     		.then (() => {
-    			this.getBooks();
-    			this.message = 'Book updated!';
+    			this.getUsers();
+    			this.message = 'User updated!';
     			this.showMessage = true;
     		})
     		.catch((error) => {
     			console.error(error);
-    			this.getBooks();
+    			this.getUsers();
     		})
     },
     deleteBook(bookID) {
     	const path = this.API_URL + `/${bookID}`;
     	axios.delete(path)
     		.then(() => {
-    			this.getBooks();
-		    	this.message = 'Book deleted!';
+    			this.getUsers();
+		    	this.message = 'User deleted!';
 		    	this.showMessage = true;
     		})
     		.catch((error) => {
     			console.error(error);
-    			this.getBooks();
+    			this.getUsers();
     		})
     },
     initForm() {
-      this.addBookForm.title = '';
-      this.addBookForm.author = '';
-      this.addBookForm.read = [];
+      this.addUserForm.title = '';
+      this.addUserForm.author = '';
+      this.addUserForm.read = [];
+      this.addUserForm.price = ';'
       this.editForm.id = '';
       this.editForm.title = '';
       this.editForm.author = '';
@@ -264,11 +292,12 @@ export default {
       this.message = 'Book added!';
       this.dismissCountDown = this.dismissSecs;
       let read = false;
-      if (this.addBookForm.read[0]) read = true;
+      if (this.addUserForm.read[0]) read = true;
       const payload = {
-        title: this.addBookForm.title,
-        author: this.addBookForm.author,
+        title: this.addUserForm.title,
+        author: this.addUserForm.author,
         read, // property shorthand
+        price: this.addUserForm.price,
       };
       this.addBook(payload);
       this.initForm();
